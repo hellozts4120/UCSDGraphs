@@ -10,6 +10,7 @@ package roadgraph;
 
 import java.util.List;
 import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 import geography.GeographicPoint;
@@ -23,7 +24,11 @@ import util.GraphLoader;
  *
  */
 public class MapGraph {
-	//TODO: Add your member variables here in WEEK 2
+	
+	HashMap<GeographicPoint, ArrayList<MapRoadInfo>> Intersections;
+	int NumOfIntersections;
+	int NumOfRoads;
+	
 	
 	
 	/** 
@@ -31,7 +36,7 @@ public class MapGraph {
 	 */
 	public MapGraph()
 	{
-		// TODO: Implement in this constructor in WEEK 2
+		this.Intersections = new HashMap<>();
 	}
 	
 	/**
@@ -40,8 +45,7 @@ public class MapGraph {
 	 */
 	public int getNumVertices()
 	{
-		//TODO: Implement this method in WEEK 2
-		return 0;
+		return this.NumOfIntersections;
 	}
 	
 	/**
@@ -50,8 +54,7 @@ public class MapGraph {
 	 */
 	public Set<GeographicPoint> getVertices()
 	{
-		//TODO: Implement this method in WEEK 2
-		return null;
+		return this.Intersections.keySet();
 	}
 	
 	/**
@@ -60,8 +63,7 @@ public class MapGraph {
 	 */
 	public int getNumEdges()
 	{
-		//TODO: Implement this method in WEEK 2
-		return 0;
+		return this.NumOfRoads;
 	}
 
 	
@@ -75,8 +77,14 @@ public class MapGraph {
 	 */
 	public boolean addVertex(GeographicPoint location)
 	{
-		// TODO: Implement this method in WEEK 2
-		return false;
+		if(Intersections.containsKey(location)){
+			return false;
+		}
+		else{
+			Intersections.put(location, new ArrayList<>());
+			this.NumOfIntersections++;
+			return true;
+		}
 	}
 	
 	/**
@@ -94,7 +102,14 @@ public class MapGraph {
 	public void addEdge(GeographicPoint from, GeographicPoint to, String roadName,
 			String roadType, double length) throws IllegalArgumentException {
 
-		//TODO: Implement this method in WEEK 2
+		if(!Intersections.containsKey(from) || !Intersections.containsKey(to)){
+			throw new IllegalArgumentException();
+		}
+		else{
+			MapRoadInfo NewRoad = new MapRoadInfo(from, to, roadName, roadType, length);
+			Intersections.get(from).add(NewRoad);
+			this.NumOfRoads++;
+		}
 		
 	}
 	
@@ -123,10 +138,37 @@ public class MapGraph {
 	public List<GeographicPoint> bfs(GeographicPoint start, 
 			 					     GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 2
+		LinkedList<GeographicPoint> queue = new LinkedList<>();
+		HashSet<GeographicPoint> visited = new HashSet<>();
+		HashMap<GeographicPoint, List<GeographicPoint> > parents = new HashMap<>();
 		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
+		queue.add(start);
+		parents.put(start, new LinkedList<>());
+		
+		while(!queue.isEmpty()){
+			GeographicPoint curPoint = queue.remove();
+			nodeSearched.accept(curPoint);
+			
+			if(curPoint.getX() == goal.getX() && curPoint.getY() == goal.getY()){
+				parents.get(curPoint).add(goal);
+				List<GeographicPoint> ans = parents.get(goal);
+				return ans;
+			}
+			
+			for(MapRoadInfo curRoad : this.Intersections.get(curPoint)){
+				GeographicPoint neighbor = curRoad.getToLocation();
+				if(visited.contains(neighbor)){
+					continue;
+				}
+				
+				visited.add(neighbor);
+				if(!parents.containsKey(neighbor)){
+					parents.put(neighbor, new LinkedList<>(parents.get(curPoint)));
+				}
+				parents.get(neighbor).add(curPoint);
+				queue.add(neighbor);
+			}
+		}
 
 		return null;
 	}
