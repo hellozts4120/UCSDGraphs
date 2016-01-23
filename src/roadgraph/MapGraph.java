@@ -3,11 +3,9 @@
  */
 package roadgraph;
 
-import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.PriorityQueue;
@@ -16,7 +14,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import geography.GeographicPoint;
-import geography.RoadSegment;
 import util.GraphLoader;
 
 /**
@@ -316,12 +313,45 @@ public class MapGraph {
 	public List<GeographicPoint> dijkstra(GeographicPoint start, 
 										  GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
-
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
+		MapNode StartNode = pointNodeMap.get(start);
+		MapNode GoalNode = pointNodeMap.get(goal);
+		HashMap<MapNode, MapNode> parents = new HashMap<>();
+		HashSet<MapNode> visited = new HashSet<>();
+		PriorityQueue<MapNode> queue = new PriorityQueue<>();
 		
-		return null;
+		for(MapNode curNode : pointNodeMap.values()){
+			curNode.setActualDistance(Double.MAX_VALUE);
+		}
+		StartNode.setActualDistance(0);
+		queue.add(StartNode);
+		
+		while(!queue.isEmpty()){
+			MapNode curNode = queue.remove();
+			
+			if(!visited.contains(curNode)){
+				visited.add(curNode);
+				nodeSearched.accept(curNode.getLocation());
+				if(curNode.equals(GoalNode)){
+					//parents.put(GoalNode, curNode);
+					break;
+				}
+				HashMap<MapNode, Double> DistanceMap = calculateDistanesMap(curNode);
+				
+				for(MapNode neighbor : curNode.getNeighbors()){
+					if(!visited.contains(neighbor)){
+						double tempDistance = curNode.getActualDistance() + 
+								DistanceMap.get(neighbor);
+						if(tempDistance < neighbor.getActualDistance()){
+							neighbor.setActualDistance(tempDistance);
+							parents.put(neighbor, curNode);
+							queue.offer(neighbor);
+						}
+					}
+				}
+			}
+		}
+		
+		return reconstructPath(parents, StartNode, GoalNode);
 	}
 
 	/** Find the path from start to goal using A-Star search
@@ -348,12 +378,63 @@ public class MapGraph {
 	public List<GeographicPoint> aStarSearch(GeographicPoint start, 
 											 GeographicPoint goal, Consumer<GeographicPoint> nodeSearched)
 	{
-		// TODO: Implement this method in WEEK 3
+		MapNode StartNode = pointNodeMap.get(start);
+		MapNode GoalNode = pointNodeMap.get(goal);
+		HashMap<MapNode, MapNode> parents = new HashMap<>();
+		HashSet<MapNode> visited = new HashSet<>();
+		PriorityQueue<MapNode> queue = new PriorityQueue<>();
 		
-		// Hook for visualization.  See writeup.
-		//nodeSearched.accept(next.getLocation());
+		for(MapNode curNode : pointNodeMap.values()){
+			curNode.setActualDistance(Double.MAX_VALUE);
+		}
+		StartNode.setActualDistance(0);
+		StartNode.setDistance(0);
+		queue.add(StartNode);
 		
-		return null;
+		while(!queue.isEmpty()){
+			MapNode curNode = queue.remove();
+			
+			if(!visited.contains(curNode)){
+				visited.add(curNode);
+				nodeSearched.accept(curNode.getLocation());
+				if(curNode.equals(GoalNode)){
+					//parents.put(GoalNode, curNode);
+					break;
+				}
+				HashMap<MapNode, Double> DistanceMap = calculateDistanesMap(curNode);
+				
+				for(MapNode neighbor : getNeighbors(curNode)){
+					if(!visited.contains(neighbor)){
+						double actualDistance = curNode.getActualDistance() + 
+								DistanceMap.get(neighbor);
+						double tempDistance = getDistance(curNode.getLocation(),
+								neighbor.getLocation());
+						if(tempDistance+actualDistance < neighbor.getActualDistance()+neighbor.getDistance()){
+							neighbor.setActualDistance(actualDistance);
+							neighbor.setDistance(tempDistance);
+							parents.put(neighbor, curNode);
+							queue.offer(neighbor);
+						}
+					}
+				}
+			}
+		}
+		
+		return reconstructPath(parents, StartNode, GoalNode);
+	}
+	
+	private HashMap<MapNode, Double> calculateDistanesMap(MapNode next) {
+		HashMap<MapNode, Double> distancesMap = new HashMap<>();
+		for (MapEdge e : next.getEdges()){
+			distancesMap.put(e.getOtherNode(next), e.getLength());
+		}
+		return distancesMap;
+	}
+	
+	private double getDistance(GeographicPoint from, GeographicPoint to){
+		double X = from.getX() - to.getX();
+		double Y = from.getY() - to.getY();
+		return Math.sqrt(X*X + Y*Y);
 	}
 
 
@@ -369,6 +450,7 @@ public class MapGraph {
 		*/ 
 
 		// more advanced testing
+		/*
 		System.out.print("Making a new map...");
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
@@ -383,20 +465,22 @@ public class MapGraph {
 												 new GeographicPoint(8.0,-1.0));
 		
 		System.out.println(route);
+		*/
 		
 			
-		/* // Use this code in Week 3 End of Week Quiz
+		 // Use this code in Week 3 End of Week Quiz
 		MapGraph theMap = new MapGraph();
 		System.out.print("DONE. \nLoading the map...");
 		GraphLoader.loadRoadMap("data/maps/utc.map", theMap);
 		System.out.println("DONE.");
 
-		GeographicPoint start = new GeographicPoint(32.868629, -117.215393);
-		GeographicPoint end = new GeographicPoint(32.868629, -117.215393);
+		GeographicPoint start = new GeographicPoint(32.8648772, -117.2254046);
+		GeographicPoint end = new GeographicPoint(32.8660691, -117.217393);
 		
 		List<GeographicPoint> route = theMap.dijkstra(start,end);
 		List<GeographicPoint> route2 = theMap.aStarSearch(start,end);
-		*/
+		System.out.println(route);
+		System.out.println(route2);
 				
 	}
 
