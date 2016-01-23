@@ -15,7 +15,7 @@ import geography.GeographicPoint;
  *
  */
 // WEEK 3 SOLUTIONS implements Comparable
-class MapNode implements Comparable
+public class MapNode implements Comparable<MapNode>
 {
 	/** The list of edges out of this node */
 	private HashSet<MapEdge> edges;
@@ -139,10 +139,9 @@ class MapNode implements Comparable
 	}
 	
     // Code to implement Comparable
-	public int compareTo(Object o) {
+	public int compareTo(MapNode inputNode) {
 		// convert to map node, may throw exception
-		MapNode m = (MapNode)o; 
-		return ((Double)this.getDistance()).compareTo((Double) m.getDistance());
+		return Double.compare(this.distance, inputNode.distance);
 	}
 
 	// END WEEK 3 SOLUTIONS

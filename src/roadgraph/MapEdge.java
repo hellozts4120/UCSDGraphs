@@ -3,8 +3,6 @@
  */
 package roadgraph;
 
-import java.util.LinkedList;
-import java.util.List;
 
 import geography.GeographicPoint;
 
@@ -13,7 +11,7 @@ import geography.GeographicPoint;
  *
  * A directed edge in a map graph from Node start to Node end
  */
-class MapEdge 
+public class MapEdge 
 {
 	/** The name of the road */
 	private String roadName;
